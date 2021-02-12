@@ -9,8 +9,7 @@ def preprocessData(languageAbbreviation, path, savePath):
     if languageAbbreviation == "us":
         dictOfChars = {'❤': 0, '😍': 1, '😂': 2, '💕': 3, '🔥': 4, '😊': 5, '😎': 6, '✨': 7, '💙': 8, '😘': 9, '📷': 10, '🇺🇸': 11, '☀': 12, '💜': 13, '😉': 14, '💯': 15, '😁': 16, '🎄': 17, '📸': 18, '😜': 19}
     else:
-        dictOfChars = {'❤': 0, '😍': 1, '😂': 2, '💕': 3, '😊': 4, '😘': 5, '💪': 6, '😉': 7, '👌': 8, '🇪🇸': 9, '😎': 10,
-                       '💙': 11, '💜': 12, '😜': 13, '💞': 14, '✨': 15, '🎶': 16, '💘': 17, '😁': 18}
+        dictOfChars = {'❤': 0, '😍': 1, '😂': 2, '💕': 3, '😊': 4, '😘': 5, '💪': 6, '😉': 7, '👌': 8, '🇪🇸': 9, '😎': 10, '💙': 11, '💜': 12, '😜': 13, '💞': 14, '✨': 15, '🎶': 16, '💘': 17, '😁': 18}
 
     with open(path, encoding="utf-8") as file:
         tweets = file.read().split("\n")
@@ -18,17 +17,16 @@ def preprocessData(languageAbbreviation, path, savePath):
             currentText = ''
             currentLabel = ''
             for character in json.loads(tweets[i])["text"]:
-                if character in ['❤', '😍', '😂', '💕', '🔥', '😊', '😎', '✨', '💙', '😘', '📷', '🇺🇸', '☀', '💜',
-                                 '😉', '💯', '😁', '🎄', '📸', '😜']:
+                if character in ['❤', '😍', '😂', '💕', '🔥', '😊', '😎', '✨', '💙', '😘', '📷', '🇺🇸', '☀', '💜', '😉', '💯', '😁', '🎄', '📸', '😜']:
                     if currentLabel == '':
                         currentLabel = character
                         labels.append(dictOfChars[character])
-                    if currentLabel != character:
+                    elif currentLabel != character:
                         print("Error: Different labels detected in tweet #" + str(i))
                         exit(-1)
                 else:
-                    # \n check
-                    if character == '\n':
+                    # new line check
+                    if character == '\n' or character == '\r':
                         currentText += " "
                     else:
                         currentText += character
@@ -55,6 +53,8 @@ def preprocessData(languageAbbreviation, path, savePath):
 
     with open(savePath + ".TEXT", 'w', encoding="utf-8") as f:
         for i in text:
+            if '\n' in i:
+                print(i)
             f.write("%s\n" % i)
     print("TEXT file successfully generated")
 
