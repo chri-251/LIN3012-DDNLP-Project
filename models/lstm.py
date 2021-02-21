@@ -1,131 +1,27 @@
 import math
 import numpy
 import re
+import string
 from Naked.toolshed.shell import muterun_rb
+from preProcessData import getPreProcessData
 from tensorflow.keras.layers import Bidirectional, Embedding, Dense, LSTM, SpatialDropout1D
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.preprocessing.text import Tokenizer
 from nltk.corpus import stopwords
 
-def asciiEmojiChecker(listOfEmojis)
-
-
-def getData(textPath, labelPath):
-    stopWords = stopwords.words("english")
-    TextFile = open(textPath, 'r', encoding="utf-8")
-    LabelsFile = open(labelPath, 'r')
-    text = TextFile.read().split("\n")[:-1]
-    labels = LabelsFile.read().split("\n")[:-1]
-    tweets = []
-
-    TextFile.close()
-    LabelsFile.close()
-
-    # Different regex parts
-    eyes = "[8:=;]"
-    nose = "['`\-]?"
-    smilePattern = re.compile("/#[8:=;]#['`\-]?[)d]+|[)d]+#['`\-]?#[8:=;]/i,")
-
-    if len(text) != len(labels):
-        print("Error: Number of tweets not equal to number of number of labels")
-        exit(-2)
-
-    for tweet in text:
-        temp = ""
-        for word in tweet.split(" "):
-            #Remove empty strings and stopwords
-            if len(word) != 0 and word not in stopWords:
-                # URL Token Check
-                if word.startswith("http"):
-                    entered = False
-                    for i in range(len(word)):
-                        if not (word[i].isdigit() or word[i].isalpha() or word[i] in "-._~:/?#[]@!$&'()*+,;="):
-                            entered = True
-                            break
-                    temp += "<URL> "
-                    if entered:
-                        word = word[i:]
-                    else:
-                        word = ""
-                # User Token Check
-                elif word[0] == '@':
-                    temp += "<USER> "
-                    continue
-                nowContinue = False
-                # Smile Token Check
-                wordHolder = word
-                for face in [":‑)", ":)", ":-]", ":]", ":-3", ":3", ":->", ":>", "8-)", "8)", ":-}", ":}", ":o)", ":c)", ":^)", "=]", "=)", ":-))", ":'‑)", ":')", "^_^", "(°o°)", "(^_^)/", "(^O^)/", "(^O^)/", "(^o^)/", "(^^)/", "(≧∇≦)/", "(/◕ヮ◕)/", "(^o^)丿", "∩(·ω·)∩", "(·ω·)", "^ω^", "\(~o~)/", "\(^o^)/", "\(-o-)/", "ヽ(^。^)ノ", "ヽ(^o^)丿", "(*^0^*)", "(●＾o＾●)", "(＾ｖ＾)", "(＾ｕ＾)", "(＾◇＾)", "( ^)o(^ )", "(^O^)", "(^o^)", "(^○^)", ")^o^(", "(*^▽^*)", "(✿◠‿◠)", "( ﾟヮﾟ)", "ヽ(´▽`)/", "^ㅂ^"]:
-                    wordHolder.replace(face, "")
-                    if wordHolder == "":
-                        temp += "<SMILE>"
-                        nowContinue = True
-                        break
-                if nowContinue:
-                    continue
-                # LolFace Token Check
-                wordHolder = word
-                for face in [":‑D", ":D", "8‑D", "8D", "x‑D", "xD", "X‑D", "XD", "=D", "=3", "B^D", "c:", "C:",">^_^<", "<^!^>", "^/^", "(*^_^*)", "§^.^§", "(^<^)", "(^.^)", "(^ム^)", "(^·^)", "(^.^)", "(^_^.)", "(^_^)", "(^^)", "(^J^)", "(*^.^*)", "^_^", "(#^.^#)", "(^—^)", "(*^^)", "(^^)", "(^_^)", "(’-’*)", "(^v^)", "(^▽^)", "(・∀・)", "(´∀`)", "(⌒▽⌒)"]:
-                    wordHolder.replace(face, "")
-                    if wordHolder == "":
-                        temp += "<LOLFACE>"
-                        nowContinue = True
-                        break
-                if nowContinue:
-                    continue
-                # SadFace Token Check
-                wordHolder = word
-                for face in [":‑(", ":(", ":‑c", ":c", ":‑<", ":<", ":‑[", ":[", ":{", ";(", "D‑':", ":'‑(", ":'(", "('_')", "(/_;)", "(T_T)", "(;_;)", "(;_;", "(;_:)", "(;O;)", "(:_;)", "(ToT)", "(T▽T)", ";_;", ";-;", ";n;", "(._.)","(´；ω；`)", "( つ Д `)"]:
-                    wordHolder.replace(face, "")
-                    if wordHolder == "":
-                        temp += "<SADFACE>"
-                        nowContinue = True
-                        break
-                if nowContinue:
-                    continue
-                # NeutralFace Token Check
-                wordHolder = word
-                for face in [":‑|", ":|", "(-_-)", "(`_ゝ`)"]:
-                    wordHolder.replace(face, "")
-                    if wordHolder == "":
-                        temp += "<NEUTRALFACE>"
-                        nowContinue = True
-                        break
-                if nowContinue:
-                    continue
-                # Heart token check
-                wordHolder = word
-                wordHolder.replace("<3", "")
-                if wordHolder == "":
-                    temp += "<HEART>"
-                    continue
-                # Number token check
-                if word.replace('.','',1).isdigit():
-                    temp += "<NUMBER>"
-                    continue
-                # Hashtag token check
-                
-
-        tweets.append(temp)
-    lengthOfLongestWord = math.ceil(sum([len(s.split(" ")) for s in tweets]) / len(tweets))
-    exit()
-    return text, labels, lengthOfLongestWord
-
+# Global Variable Declaration
+stopWords = stopwords.words("english")
 
 if __name__ == "__main__":
     # Variable Declaration
-    text, labels, _ = getData("../dataset/us/train/us_train.TEXT", "../dataset/us/train/us_train.LABELS")
-    validationText, validationLabels, _ = getData("../dataset/us/valid/us_valid.TEXT",
-                                                  "../dataset/us/valid/us_valid.LABELS")
+    trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData("us")
     tweets = []
 
-    text.extend(validationText)
-    labels.extend(validationLabels)
-    splitRatio = len(validationLabels) / len(labels)
+    trainText.extend(validationText)
+    trainLabels.extend(validationLabels)
+    splitRatio = len(validationLabels) / len(trainLabels)
     del validationText, validationLabels
-
-    # Remove unneeded words
-    print("Remove unneeded words")
 
     # Tokenize tweets
     print("Tokenize tweets")
@@ -140,7 +36,7 @@ if __name__ == "__main__":
 
     # Convert labels into a numpy array
     print("Convert labels into a numpy array")
-    for label in labels:
+    for label in trainLabels:
         # Change for es
         current = numpy.zeros(20)
         current[int(label)] = 1
