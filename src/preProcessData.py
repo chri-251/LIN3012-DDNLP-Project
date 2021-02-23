@@ -229,5 +229,6 @@ def getPreProcessData(languageAbbreviation):
     trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/us_train.TEXT", "raw data/train/us_train.LABELS")
     validData, validLabels = getData("validation", "pre-processed data/valid/text.txt", "raw data/valid/us_valid.TEXT", "raw data/valid/us_valid.LABELS")
     testData, testLabels = getData("test", "pre-processed data/test/text.txt", "raw data/test/us_test.TEXT", "raw data/test/us_test.LABELS")
+    os.chdir("../../src")
 
     return trainData, trainLabels, validData, validLabels, testData, testLabels

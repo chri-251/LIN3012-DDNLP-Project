@@ -1,34 +1,31 @@
 import math
 import numpy
-from Naked.toolshed.shell import muterun_rb
 from preProcessData import getPreProcessData
 from tensorflow.keras.layers import Bidirectional, Embedding, Dense, LSTM, SpatialDropout1D
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.preprocessing.text import Tokenizer
-from nltk.corpus import stopwords
 
-# Global Variable Declaration
-stopWords = stopwords.words("english")
 
 if __name__ == "__main__":
     # Variable Declaration
     trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData("us")
-    tweets = []
-    exit()
     trainText.extend(validationText)
     trainLabels.extend(validationLabels)
     splitRatio = len(validationLabels) / len(trainLabels)
+
     del validationText, validationLabels
+
+    lengthOfLongestWord = math.ceil(sum([len(tweet.split(" ")) for tweet in trainText]) / len(trainText))
 
     # Tokenize tweets
     print("Tokenize tweets")
-    tokenizer = Tokenizer(lower=True, split=" ")
-    tokenizer.fit_on_texts(tweets)
-    tweets = tokenizer.texts_to_sequences(tweets)
+    tokenizer = Tokenizer(filters='', lower=False)
+    tokenizer.fit_on_texts(trainText)
+    tweets = tokenizer.texts_to_sequences(trainText)
 
     # Convert tweets into numpy array (This requires padding since sentences are not the same length)
-    print("Convert tweets into numpy array")
+    print("Convert tokens into numpy array")
     tweets = pad_sequences(tweets, maxlen=lengthOfLongestWord, padding="post")
     temp = []
 
@@ -45,7 +42,7 @@ if __name__ == "__main__":
 
     # First load GloVe vectors
     print("First load GloVe vectors")
-    glove = open("../glove.840B.300d.txt", 'r', encoding="utf-8")
+    glove = open("../dataset/gloveVectors.txt", 'r', encoding="utf-8")
     embeddings = {}
     for line in glove:
         values = line.split(' ')
@@ -70,7 +67,6 @@ if __name__ == "__main__":
     model.add(Bidirectional(LSTM(128, dropout=0.2)))
     model.add(Dense(20, "softmax"))
     model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
-    model.fit(tweets, labels, epochs=5, validation_split=splitRatio)
-    # score, acc = model.evaluate(xTest, yTest)
 
-    # trainSet = pandas.DataFrame(list(zip(text, labels)))
+    # Fit model with data
+    model.fit(tweets, labels, epochs=1, validation_split=splitRatio)
