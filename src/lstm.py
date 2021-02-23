@@ -1,7 +1,5 @@
 import math
 import numpy
-import re
-import string
 from Naked.toolshed.shell import muterun_rb
 from preProcessData import getPreProcessData
 from tensorflow.keras.layers import Bidirectional, Embedding, Dense, LSTM, SpatialDropout1D
@@ -17,7 +15,7 @@ if __name__ == "__main__":
     # Variable Declaration
     trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData("us")
     tweets = []
-
+    exit()
     trainText.extend(validationText)
     trainLabels.extend(validationLabels)
     splitRatio = len(validationLabels) / len(trainLabels)

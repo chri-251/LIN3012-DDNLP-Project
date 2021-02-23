@@ -1,4 +1,5 @@
 import enchant
+import os
 import re
 import string
 
@@ -158,59 +159,75 @@ def preProcessWord(word, handled=False):
     return 0
 
 
-def getPreProcessData(languageAbbreviation):
-    if languageAbbreviation == "us":
-        textPath = "../dataset/us/raw data/train/us_train.TEXT"
-        labelPath = "../dataset/us/raw data/train/us_train.LABELS"
-    else:
-        textPath = "../dataset/es/raw data/train/us_train.TEXT"
-        labelPath = "../dataset/es/raw data/train/us_train.LABELS"
-
-    textFile = open(textPath, 'r', encoding="utf-8")
-    labelsFile = open(labelPath, 'r')
-    text = textFile.read().split("\n")[:-1]
+def getData(name, preProcessedPath, rawPath, labelPath):
+    # Get labels
+    labelsFile = open(labelPath)
     labels = labelsFile.read().split("\n")[:-1]
-    tweets = []
 
-    textFile.close()
-    labelsFile.close()
+    if os.path.exists(preProcessedPath):
+        # Get Tweets
+        textFile = open(preProcessedPath, encoding="utf-8")
+        tweets = textFile.read().split("\n")[:-1]
 
-    if len(text) != len(labels):
-        print("Error: Number of tweets not equal to number of number of labels")
-        exit(-2)
+        if len(tweets) != len(labels):
+            print("Error occurred while getting " + name + " data: Number of tweets not equal to number of number of labels")
+            exit(-2)
 
-    for i, tweet in enumerate(text):
-        if i == 1370:
-            print("x")
-        punctuationLength = 0
-        punctuation = ""
-        newTweet = ""
-        current = tweet.split(" ")
-        for j, word in enumerate(current):
-            isPunctuation = True
-            for c in word:
-                if c not in string.punctuation and c != '#':
-                    isPunctuation = False
-                    break
-            if isPunctuation:
-                punctuation += word
-                punctuationLength += 1
-            elif len(punctuation) != 0:
-                newTweet = ' '.join(current[:j - punctuationLength]) + " " + punctuation + " " + ' '.join(current[j:])
-                punctuation = ""
-        if newTweet != "":
-            tweet = newTweet
+        textFile.close()
+        labelsFile.close()
+    else:
+        print("---------------------")
+        print("Pre-processing " + name + " data")
+        print("---------------------")
 
-        temp = ""
-        for word in tweet.split(" "):
-            processed = preProcessWord(word)
-            if processed != 0:
-                temp += processed + " "
-        tweets.append(re.sub(' +', ' ', temp).strip())
-        print((i / len(text)) * 100)
-    with open("../dataset/us/pre-processed data/train/train.txt", "w+", encoding="utf-8") as f:
-        for tweet in tweets:
-            f.write(tweet + '\n')
+        tweets = []
+        textFile = open(rawPath, encoding="utf-8")
+        text = textFile.read().split('\n')[:-1]
 
-    exit()
-    return text, labels
+        if len(text) != len(labels):
+            print("Error occurred while getting " + name + " data: Number of tweets not equal to number of number of labels")
+            exit(-2)
+
+        for i, tweet in enumerate(text):
+            punctuationLength = 0
+            punctuation = ""
+            newTweet = ""
+            current = tweet.split(" ")
+            for j, word in enumerate(current):
+                isPunctuation = True
+                for c in word:
+                    if c not in string.punctuation and c != '#':
+                        isPunctuation = False
+                        break
+                if isPunctuation:
+                    punctuation += word
+                    punctuationLength += 1
+                elif len(punctuation) != 0:
+                    newTweet = ' '.join(current[:j - punctuationLength]) + " " + punctuation + " " + ' '.join(
+                        current[j:])
+                    punctuation = ""
+            if newTweet != "":
+                tweet = newTweet
+
+            temp = ""
+            for word in tweet.split(" "):
+                processed = preProcessWord(word)
+                if processed != 0:
+                    temp += processed + " "
+            tweets.append(re.sub(' +', ' ', temp).strip())
+            print("Pre-processing " + name + " data: " + str(round((i / len(text)) * 100)) + "% complete")
+        with open(preProcessedPath, "w+", encoding="utf-8") as f:
+            for tweet in tweets:
+                f.write(tweet + '\n')
+
+    return tweets, labels
+
+
+def getPreProcessData(languageAbbreviation):
+    os.chdir("../dataset/" + languageAbbreviation)
+
+    trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/us_train.TEXT", "raw data/train/us_train.LABELS")
+    validData, validLabels = getData("validation", "pre-processed data/valid/text.txt", "raw data/valid/us_valid.TEXT", "raw data/valid/us_valid.LABELS")
+    testData, testLabels = getData("test", "pre-processed data/test/text.txt", "raw data/test/us_test.TEXT", "raw data/test/us_test.LABELS")
+
+    return trainData, trainLabels, validData, validLabels, testData, testLabels

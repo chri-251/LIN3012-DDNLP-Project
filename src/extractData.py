@@ -1,7 +1,7 @@
 import json
 
 
-def preprocessData(languageAbbreviation, path, savePath):
+def extractData(languageAbbreviation, path, savePath):
     # Variable Declaration
     text = []
     labels = []
@@ -65,7 +65,7 @@ def preprocessData(languageAbbreviation, path, savePath):
 
 
 if __name__ == "__main__":
-    print("-------- Pre-processing us train data --------")
-    preprocessData("us", "dataset/us/train/trainOriginal.txt", "dataset/us/train/us_train")
-    print("-------- Pre-processing es train data --------")
-    preprocessData("es", "dataset/es/train/trainOriginal.txt", "dataset/es/train/es_train")
+    print("-------- Extracting us train data --------")
+    extractData("us", "dataset/us/train/trainOriginal.txt", "dataset/us/raw data/train/us_train")
+    print("-------- Extracting es train data --------")
+    extractData("es", "dataset/es/train/trainOriginal.txt", "dataset/es/raw data/train/es_train")
