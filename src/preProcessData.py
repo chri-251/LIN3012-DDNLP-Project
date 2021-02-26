@@ -2,9 +2,11 @@ import enchant
 import os
 import re
 import string
+from nltk.corpus import stopwords
 
 # Global Variable Declaration
 dictionary = enchant.Dict("en_US")
+stopWords = stopwords.words("english")
 
 
 def getCharacterClass(character):
@@ -18,9 +20,10 @@ def getCharacterClass(character):
 
 def preProcessWord(word, handled=False):
     # Remove empty strings and stopwords
-    if len(word) != 0:
+    if len(word) >= 2 and word.lower() not in stopWords:
+
         # URL Token Check
-        if word.startswith("http"):
+        if word.startswith("http") or word.startswith("www"):
             for i in range(len(word)):
                 if not (word[i].isdigit() or word[i].isalpha() or word[i] in " \<>{}_"):
                     word = preProcessWord(word[i:])
@@ -50,7 +53,10 @@ def preProcessWord(word, handled=False):
                     processedWord = preProcessWord(word)
                     if processedWord != 0:
                         temp += processedWord + " "
-                return temp[:-1]
+                if temp[0] == '#':
+                    return temp[:-1]
+                else:
+                    return temp
 
             # Underscore check
             words = word.split('_')
@@ -60,11 +66,22 @@ def preProcessWord(word, handled=False):
                     processedWord = preProcessWord(word)
                     if processedWord != 0:
                         temp += processedWord + " "
-                return temp[:-1]
-            processedWord = preProcessWord(word[1:])
+                if temp[0] == '#':
+                    return temp[:-1]
+                else:
+                    return temp
+            processedWord = preProcessWord(word)
             if processedWord == 0:
                 return "<hashtag>"
-            return "<hashtag> " + preProcessWord(word)
+            return "<hashtag> " + processedWord
+
+        # # All Caps token check
+        # # N.B: Second check needs to be added due to certain unicode characters
+        # if word.isupper() and word.upper() != word.lower():
+        #     processedWord = preProcessWord(word.lower())
+        #     if processedWord == 0:
+        #         return "<allcaps>"
+        #     return "<allcaps> " + processedWord
 
         # Handle Punctuation and numbers
         current = getCharacterClass(word[0])
@@ -86,6 +103,7 @@ def preProcessWord(word, handled=False):
             return toBeReturned
 
         if any(p in word for p in string.punctuation):
+
             # Smile Token Check
             wordHolder = word
             for face in [":‑)", ":)", ":-]", ":]", ":-3", ":3", ":->", ":>", "8-)", "8)", ":-}", ":}", ":o)", ":c)",
@@ -159,12 +177,12 @@ def preProcessWord(word, handled=False):
     return 0
 
 
-def getData(name, preProcessedPath, rawPath, labelPath):
+def getData(name, preProcessedPath, rawPath, labelPath, ForcePreProcess):
     # Get labels
     labelsFile = open(labelPath)
     labels = labelsFile.read().split("\n")[:-1]
 
-    if os.path.exists(preProcessedPath):
+    if not ForcePreProcess and os.path.exists(preProcessedPath):
         # Get Tweets
         textFile = open(preProcessedPath, encoding="utf-8")
         tweets = textFile.read().split("\n")[:-1]
@@ -189,16 +207,21 @@ def getData(name, preProcessedPath, rawPath, labelPath):
             exit(-2)
 
         for i, tweet in enumerate(text):
+            if i == 2:
+                print("stop")
             punctuationLength = 0
             punctuation = ""
             newTweet = ""
             current = tweet.split(" ")
             for j, word in enumerate(current):
                 isPunctuation = True
-                for c in word:
-                    if c not in string.punctuation and c != '#':
-                        isPunctuation = False
-                        break
+                if word == '':
+                    isPunctuation = False
+                else:
+                    for c in word:
+                        if c not in string.punctuation:
+                            isPunctuation = False
+                            break
                 if isPunctuation:
                     punctuation += word
                     punctuationLength += 1
@@ -214,7 +237,12 @@ def getData(name, preProcessedPath, rawPath, labelPath):
                 processed = preProcessWord(word)
                 if processed != 0:
                     temp += processed + " "
-            tweets.append(re.sub(' +', ' ', temp).strip())
+            temp = re.sub(' +', ' ', temp).strip()
+            # Handle case when all words in tweet are stopwords
+            if len(temp) == 0:
+                tweets.append(" ")
+            else:
+                tweets.append(temp)
             print("Pre-processing " + name + " data: " + str(round((i / len(text)) * 100)) + "% complete")
         with open(preProcessedPath, "w+", encoding="utf-8") as f:
             for tweet in tweets:
@@ -223,12 +251,12 @@ def getData(name, preProcessedPath, rawPath, labelPath):
     return tweets, labels
 
 
-def getPreProcessData(languageAbbreviation):
+def getPreProcessData(languageAbbreviation, ForcePreProcess=False):
     os.chdir("../dataset/" + languageAbbreviation)
 
-    trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/us_train.TEXT", "raw data/train/us_train.LABELS")
-    validData, validLabels = getData("validation", "pre-processed data/valid/text.txt", "raw data/valid/us_valid.TEXT", "raw data/valid/us_valid.LABELS")
-    testData, testLabels = getData("test", "pre-processed data/test/text.txt", "raw data/test/us_test.TEXT", "raw data/test/us_test.LABELS")
+    trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/us_train.TEXT", "raw data/train/us_train.LABELS", ForcePreProcess)
+    validData, validLabels = getData("validation", "pre-processed data/valid/text.txt", "raw data/valid/us_valid.TEXT", "raw data/valid/us_valid.LABELS", ForcePreProcess)
+    testData, testLabels = getData("test", "pre-processed data/test/text.txt", "raw data/test/us_test.TEXT", "raw data/test/us_test.LABELS", ForcePreProcess)
     os.chdir("../../src")
 
     return trainData, trainLabels, validData, validLabels, testData, testLabels
