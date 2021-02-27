@@ -75,13 +75,13 @@ def preProcessWord(word, handled=False):
                 return "<hashtag>"
             return "<hashtag> " + processedWord
 
-        # # All Caps token check
-        # # N.B: Second check needs to be added due to certain unicode characters
-        # if word.isupper() and word.upper() != word.lower():
-        #     processedWord = preProcessWord(word.lower())
-        #     if processedWord == 0:
-        #         return "<allcaps>"
-        #     return "<allcaps> " + processedWord
+        # All Caps token check
+        # N.B: Second check needs to be added due to certain unicode characters
+        if word.isupper() and word.upper() != word.lower():
+            processedWord = preProcessWord(word.lower())
+            if processedWord == 0:
+                return "<allcaps>"
+            return "<allcaps> " + processedWord
 
         # Handle Punctuation and numbers
         current = getCharacterClass(word[0])
@@ -207,8 +207,6 @@ def getData(name, preProcessedPath, rawPath, labelPath, ForcePreProcess):
             exit(-2)
 
         for i, tweet in enumerate(text):
-            if i == 2:
-                print("stop")
             punctuationLength = 0
             punctuation = ""
             newTweet = ""
@@ -251,7 +249,10 @@ def getData(name, preProcessedPath, rawPath, labelPath, ForcePreProcess):
     return tweets, labels
 
 
-def getPreProcessData(languageAbbreviation, ForcePreProcess=False):
+def getPreProcessData(languageAbbreviation, ForcePreProcess=False, SimplePreProcessing=False):
+    if SimplePreProcessing:
+        print("Chris do your thing")
+
     os.chdir("../dataset/" + languageAbbreviation)
 
     trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/us_train.TEXT", "raw data/train/us_train.LABELS", ForcePreProcess)

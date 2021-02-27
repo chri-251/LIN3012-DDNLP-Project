@@ -41,17 +41,16 @@ def formatData(text, labels):
 if __name__ == "__main__":
     # Variable Declaration
     languageAbbreviation = "us"
-    trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData(languageAbbreviation, False)
+    trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData(languageAbbreviation, True)
     numberOfEpochs = 1
-    continueTraining = True
+    continueTraining = False
     # trainText = trainText[:round((1/10) * len(trainText))]
     # trainLabels = trainLabels[:round((1 / 10) * len(trainLabels))]
     # validationText = validationText[:round((1 / 10) * len(validationText))]
     # validationLabels = validationLabels[:round((1 / 10) * len(validationLabels))]
     # testText = testText[:round((1 / 10) * len(testText))]
     # testLabels = testLabels[:round((1 / 10) * len(testLabels))]
-
-
+    exit()
     if not os.path.isdir("../models/bi-lstm - " + languageAbbreviation):
 
         trainText.extend(validationText)
@@ -92,7 +91,7 @@ if __name__ == "__main__":
 
         # Fit model with data
         model.fit(trainText, trainLabels, epochs=numberOfEpochs, validation_split=splitRatio)
-        model.save("../models/bi-lstm")
+        model.save("../models/bi-lstm - " + languageAbbreviation)
 
     elif continueTraining:
         trainText.extend(validationText)
