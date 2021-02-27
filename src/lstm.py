@@ -30,7 +30,7 @@ def formatData(text, labels):
     # Convert labels into a numpy array
     for label in labels:
         # Change for es
-        current = numpy.zeros(20)
+        current = numpy.zeros(numberOfDifferentLabels)
         current[int(label)] = 1
         temp.append(current)
     labels = numpy.asarray(temp)
@@ -39,86 +39,99 @@ def formatData(text, labels):
 
 
 if __name__ == "__main__":
+
     # Variable Declaration
     languageAbbreviation = "us"
-    trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData(languageAbbreviation, True)
-    numberOfEpochs = 1
-    continueTraining = False
-    exit()
-    # trainText = trainText[:round((1/10) * len(trainText))]
-    # trainLabels = trainLabels[:round((1 / 10) * len(trainLabels))]
-    # validationText = validationText[:round((1 / 10) * len(validationText))]
-    # validationLabels = validationLabels[:round((1 / 10) * len(validationLabels))]
-    # testText = testText[:round((1 / 10) * len(testText))]
-    # testLabels = testLabels[:round((1 / 10) * len(testLabels))]
-    if not os.path.isdir("../models/bi-lstm - " + languageAbbreviation):
-
-        trainText.extend(validationText)
-        trainLabels.extend(validationLabels)
-        splitRatio = len(validationLabels) / len(trainLabels)
-
-        del validationText, validationLabels
-
-        print("Creating bi-lstm model, this is going to be a while")
-
-        trainText, trainLabels, lengthOfLongestWord = formatData(trainText, trainLabels)
-        testText, testLabels, _ = formatData(testText, testLabels)
-
-        # Create weight matrix
-
-        # First load GloVe vectors
-        glove = open("../dataset/gloveVectors.txt", 'r', encoding="utf-8")
-        embeddings = {}
-        for line in glove:
-            values = line.split(' ')
-            embeddings[values[0]] = numpy.asarray([float(val) for val in values[1:]])
-        glove.close()
-
-        vocab = tokenizer.word_index
-        weightMatrix = numpy.zeros((len(vocab) + 1, 200))
-
-        for i, (myWord, myId) in enumerate(vocab.items()):
-            if myWord in embeddings:
-                weightMatrix[myId] = embeddings[myWord]
-
-        # Create LSTM model
-        model = Sequential()
-        model.add(Embedding(len(vocab) + 1, 200, mask_zero=True, input_length=lengthOfLongestWord, trainable=True, weights=[weightMatrix]))
-        model.add(Bidirectional(LSTM(128, dropout=0.2, return_sequences=True)))
-        model.add(Bidirectional(LSTM(128, dropout=0.2)))
-        model.add(Dense(20, "softmax"))
-        model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy", Precision(), Recall()])
-
-        # Fit model with data
-        model.fit(trainText, trainLabels, epochs=numberOfEpochs, validation_split=splitRatio)
-        model.save("../models/bi-lstm - " + languageAbbreviation)
-
-    elif continueTraining:
-        trainText.extend(validationText)
-        trainLabels.extend(validationLabels)
-        splitRatio = len(validationLabels) / len(trainLabels)
-
-        del validationText, validationLabels
-
-        print("Resuming bi-lstm model training, this is going to be a while")
-
-        trainText, trainLabels, lengthOfLongestWord = formatData(trainText, trainLabels)
-        testText, testLabels, _ = formatData(testText, testLabels)
-        model = load_model("../models/bi-lstm - " + languageAbbreviation)
-        model.fit(trainText, trainLabels, epochs=numberOfEpochs, validation_split=splitRatio, initial_epoch=numberOfEpochs-1)
-        model.save("../models/bi-lstm - " + languageAbbreviation)
-
+    trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData(languageAbbreviation, False, True)
+    numberOfEpochs = 2
+    continueTraining = True
+    if languageAbbreviation == "us":
+        numberOfDifferentLabels = 20
     else:
-        testText, testLabels, _ = formatData(testText, testLabels)
-        model = load_model("../models/bi-lstm - " + languageAbbreviation)
+        numberOfDifferentLabels = 19
 
-    # Evaluate model
-    predictions = model.predict(testText)
-    predictions = numpy.around(predictions)
-    results = metrics.classification_report(testLabels, predictions)
-    print(results)
-    acc = str(metrics.accuracy_score(testLabels, predictions))
-    print("accuracy = " + acc)
-    with open("../results/bi-lstm " + str(numberOfEpochs) + " " + datetime.now().strftime("%d-%m-%Y %H-%M-%S") + ".txt", "w+") as f:
-        f.write(results + "\n" + "accuracy = " + acc)
+    trainText.extend(validationText)
+    trainLabels.extend(validationLabels)
+    splitRatio = len(validationLabels) / len(trainLabels)
+
+    del validationText, validationLabels
+
+    print("Resuming bi-lstm model training, this is going to be a while")
+
+    trainText, trainLabels, lengthOfLongestWord = formatData(trainText, trainLabels)
+    testText, testLabels, _ = formatData(testText, testLabels)
+    model = load_model("../models/bi-lstm - " + languageAbbreviation)
+
+    while True:
+
+        # continueTraining = False
+
+        # trainText = trainText[:round((1/10) * len(trainText))]
+        # trainLabels = trainLabels[:round((1 / 10) * len(trainLabels))]
+        # validationText = validationText[:round((1 / 10) * len(validationText))]
+        # validationLabels = validationLabels[:round((1 / 10) * len(validationLabels))]
+        # testText = testText[:round((1 / 10) * len(testText))]
+        # testLabels = testLabels[:round((1 / 10) * len(testLabels))]
+        if not os.path.isdir("../models/bi-lstm - " + languageAbbreviation):
+
+            trainText.extend(validationText)
+            trainLabels.extend(validationLabels)
+            splitRatio = len(validationLabels) / len(trainLabels)
+
+            del validationText, validationLabels
+
+            print("Creating bi-lstm model, this is going to be a while")
+
+            trainText, trainLabels, lengthOfLongestWord = formatData(trainText, trainLabels)
+            testText, testLabels, _ = formatData(testText, testLabels)
+
+            # Create weight matrix
+
+            # First load GloVe vectors
+            glove = open("../dataset/gloveVectors.txt", 'r', encoding="utf-8")
+            embeddings = {}
+            for line in glove:
+                values = line.split(' ')
+                embeddings[values[0]] = numpy.asarray([float(val) for val in values[1:]])
+            glove.close()
+
+            vocab = tokenizer.word_index
+            weightMatrix = numpy.zeros((len(vocab) + 1, 200))
+
+            for i, (myWord, myId) in enumerate(vocab.items()):
+                if myWord in embeddings:
+                    weightMatrix[myId] = embeddings[myWord]
+
+            # Create Bi-LSTM model
+            model = Sequential()
+            model.add(Embedding(len(vocab) + 1, 200, mask_zero=True, input_length=lengthOfLongestWord, trainable=True, weights=[weightMatrix]))
+            model.add(Bidirectional(LSTM(128, dropout=0.2, return_sequences=True)))
+            model.add(Bidirectional(LSTM(128, dropout=0.2)))
+            model.add(Dense(numberOfDifferentLabels, "softmax"))
+            model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy", Precision(), Recall()])
+
+            # Fit model with data
+            model.fit(trainText, trainLabels, epochs=numberOfEpochs, validation_split=splitRatio)
+            model.save("../models/bi-lstm - " + languageAbbreviation)
+
+        elif continueTraining:
+
+            model.fit(trainText, trainLabels, epochs=numberOfEpochs, validation_split=splitRatio, initial_epoch=numberOfEpochs-1)
+            model.save("../models/bi-lstm - " + languageAbbreviation)
+            model.save("../models/bi-lstm - " + languageAbbreviation + " (" + str(numberOfEpochs) + ")")
+
+        else:
+            testText, testLabels, _ = formatData(testText, testLabels)
+            model = load_model("../models/bi-lstm - " + languageAbbreviation)
+
+        # Evaluate model
+        predictions = model.predict(testText)
+        predictions = numpy.around(predictions)
+        results = metrics.classification_report(testLabels, predictions)
+        print(results)
+        acc = str(metrics.accuracy_score(testLabels, predictions))
+        print("accuracy = " + acc)
+        with open("../results/bi-lstm " + str(numberOfEpochs) + " " + datetime.now().strftime("%d-%m-%Y %H-%M-%S") + ".txt", "w+") as f:
+            f.write(results + "\n" + "accuracy = " + acc)
+        numberOfEpochs += 1
 
