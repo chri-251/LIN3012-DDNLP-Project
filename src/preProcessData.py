@@ -273,20 +273,60 @@ def getData(name, preProcessedPath, rawPath, labelPath, ForcePreProcess):
     return tweets, labels
 
 
+def simple_preprocessing(tweet_filename, labels_filename):
+    set_tweets = []
+
+    set_txt = open(tweet_filename, 'r', encoding='utf-8')
+    set_labels_file = open(labels_filename, 'r', encoding='utf-8')
+
+    # create list with labels
+    set_labels = set_labels_file.read().split("\n")
+    if set_labels[len(set_labels) - 1] == '':
+        set_labels = set_labels[:-1]
+
+    # create list with pre-processed tweets
+    for line in set_txt:
+        prep_tweet = ''
+        lowercase_line = line.lower()
+        lowercase_line = lowercase_line.rstrip("\n")
+
+        lowercase_no_punc = lowercase_line.translate(str.maketrans('', '', string.punctuation))
+        # removes # and @ as well
+
+        for word in lowercase_no_punc.split():
+            if len(word) >= 2 and word not in stopWords:
+                prep_tweet += word + " "
+
+        prep_tweet = prep_tweet.strip()  # removes extra spaces at the front or back of prep_tweet
+
+        set_tweets.append(prep_tweet)
+
+    set_txt.close()
+    set_labels_file.close()
+
+    return set_tweets, set_labels
+
+
 def getPreProcessData(language, ForcePreProcess=False, SimplePreProcessing=False):
     global languageAbbreviation
     languageAbbreviation = language
-
-    if SimplePreProcessing:
-        print("Chris here")
 
     generateDicts()
 
     os.chdir("../dataset/" + languageAbbreviation)
 
-    trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/" + languageAbbreviation +"_train.TEXT", "raw data/train/" + languageAbbreviation +"_train.LABELS", ForcePreProcess)
-    validData, validLabels = getData("validation", "pre-processed data/valid/text.txt", "raw data/valid/" + languageAbbreviation +"_valid.TEXT", "raw data/valid/" + languageAbbreviation +"_valid.LABELS", ForcePreProcess)
-    testData, testLabels = getData("test", "pre-processed data/test/text.txt", "raw data/test/" + languageAbbreviation +"_test.TEXT", "raw data/test/" + languageAbbreviation +"_test.LABELS", ForcePreProcess)
+    if SimplePreProcessing:
+        trainData, trainLabels = simple_preprocessing('raw data/train/' + languageAbbreviation + '_train.text',
+                                                      'raw data/train/' + languageAbbreviation + '_train.labels')
+        validData, validLabels = simple_preprocessing('raw data/valid/' + languageAbbreviation + '_valid.text',
+                                                      'raw data/valid/' + languageAbbreviation + '_valid.labels')
+        testData, testLabels = simple_preprocessing('raw data/test/' + languageAbbreviation + '_test.text',
+                                                    'raw data/test/' + languageAbbreviation + '_test.labels')
+    else:
+        trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/" + languageAbbreviation +"_train.TEXT", "raw data/train/" + languageAbbreviation +"_train.LABELS", ForcePreProcess)
+        validData, validLabels = getData("validation", "pre-processed data/valid/text.txt", "raw data/valid/" + languageAbbreviation +"_valid.TEXT", "raw data/valid/" + languageAbbreviation +"_valid.LABELS", ForcePreProcess)
+        testData, testLabels = getData("test", "pre-processed data/test/text.txt", "raw data/test/" + languageAbbreviation +"_test.TEXT", "raw data/test/" + languageAbbreviation +"_test.LABELS", ForcePreProcess)
+
     os.chdir("../../src")
 
     return trainData, trainLabels, validData, validLabels, testData, testLabels
