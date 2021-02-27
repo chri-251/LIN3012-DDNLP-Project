@@ -2,11 +2,34 @@ import enchant
 import os
 import re
 import string
+from language_detector import detect_language
 from nltk.corpus import stopwords
 
 # Global Variable Declaration
-dictionary = enchant.Dict("en_US")
-stopWords = stopwords.words("english")
+global dictionary
+global stopWords
+global languageAbbreviation
+
+
+def isWord(word):
+    if languageAbbreviation == "us":
+        if dictionary.check(word):
+            return True
+    else:
+        if detect_language(word) == "Spanish":
+            return True
+    return False
+
+
+def generateDicts():
+    global dictionary
+    global stopWords
+
+    if languageAbbreviation == "us":
+        dictionary = enchant.Dict("en_US")
+        stopWords = stopwords.words("english")
+    else:
+        stopWords = stopwords.words("spanish")
 
 
 def getCharacterClass(character):
@@ -159,13 +182,13 @@ def preProcessWord(word, handled=False):
                 return temp[::-1].lower() + " " + punctuation + " <repeat>"
 
         # Elong token check
-        if len(word) > 2 and word[-1] == word[-2] and not dictionary.check(word):
+        if len(word) > 2 and word[-1] == word[-2] and not isWord(word):
             repeatedCharacter = word[-1]
             reversedWord = word[::-1]
             for i in range(len(reversedWord)):
                 if reversedWord[i] != repeatedCharacter:
                     word = reversedWord[i:][::-1] + repeatedCharacter
-                    if dictionary.check(word + repeatedCharacter):
+                    if isWord(word + repeatedCharacter):
                         processedWord = preProcessWord(word + repeatedCharacter)
                         if processedWord != 0:
                             return processedWord + " <elong>"
@@ -178,6 +201,7 @@ def preProcessWord(word, handled=False):
 
 
 def getData(name, preProcessedPath, rawPath, labelPath, ForcePreProcess):
+
     # Get labels
     labelsFile = open(labelPath)
     labels = labelsFile.read().split("\n")[:-1]
@@ -249,15 +273,20 @@ def getData(name, preProcessedPath, rawPath, labelPath, ForcePreProcess):
     return tweets, labels
 
 
-def getPreProcessData(languageAbbreviation, ForcePreProcess=False, SimplePreProcessing=False):
+def getPreProcessData(language, ForcePreProcess=False, SimplePreProcessing=False):
+    global languageAbbreviation
+    languageAbbreviation = language
+
     if SimplePreProcessing:
-        print("Chris do your thing")
+        print("Chris here")
+
+    generateDicts()
 
     os.chdir("../dataset/" + languageAbbreviation)
 
-    trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/us_train.TEXT", "raw data/train/us_train.LABELS", ForcePreProcess)
-    validData, validLabels = getData("validation", "pre-processed data/valid/text.txt", "raw data/valid/us_valid.TEXT", "raw data/valid/us_valid.LABELS", ForcePreProcess)
-    testData, testLabels = getData("test", "pre-processed data/test/text.txt", "raw data/test/us_test.TEXT", "raw data/test/us_test.LABELS", ForcePreProcess)
+    trainData, trainLabels = getData("train", "pre-processed data/train/text.txt", "raw data/train/" + languageAbbreviation +"_train.TEXT", "raw data/train/" + languageAbbreviation +"_train.LABELS", ForcePreProcess)
+    validData, validLabels = getData("validation", "pre-processed data/valid/text.txt", "raw data/valid/" + languageAbbreviation +"_valid.TEXT", "raw data/valid/" + languageAbbreviation +"_valid.LABELS", ForcePreProcess)
+    testData, testLabels = getData("test", "pre-processed data/test/text.txt", "raw data/test/" + languageAbbreviation +"_test.TEXT", "raw data/test/" + languageAbbreviation +"_test.LABELS", ForcePreProcess)
     os.chdir("../../src")
 
     return trainData, trainLabels, validData, validLabels, testData, testLabels

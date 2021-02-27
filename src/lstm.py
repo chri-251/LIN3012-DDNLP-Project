@@ -44,13 +44,13 @@ if __name__ == "__main__":
     trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData(languageAbbreviation, True)
     numberOfEpochs = 1
     continueTraining = False
+    exit()
     # trainText = trainText[:round((1/10) * len(trainText))]
     # trainLabels = trainLabels[:round((1 / 10) * len(trainLabels))]
     # validationText = validationText[:round((1 / 10) * len(validationText))]
     # validationLabels = validationLabels[:round((1 / 10) * len(validationLabels))]
     # testText = testText[:round((1 / 10) * len(testText))]
     # testLabels = testLabels[:round((1 / 10) * len(testLabels))]
-    exit()
     if not os.path.isdir("../models/bi-lstm - " + languageAbbreviation):
 
         trainText.extend(validationText)
