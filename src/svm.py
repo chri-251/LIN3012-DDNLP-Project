@@ -2,12 +2,11 @@ import pickle
 import sys
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import svm
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report
 from spacy.lang.en import English
 from spacy.lang.es import Spanish
 from datetime import datetime
 from preProcessData import getPreProcessData
-
 
 
 # returns tweets as tokens having a POS tag
@@ -19,10 +18,15 @@ def spacy_tokenize(tweet):
 
 
 # fits/loads SVM model, and converts all data such that it uses TF-IDF, POS tags and bi-grams
-def svm_tfidf_pos_bigram(save, train_tweets, test_tweets, train_emoji_labels, test_emoji_labels):
+def svm_tfidf_pos_bigram(save, train_tweets, test_tweets, train_emoji_labels, test_emoji_labels, language, simple):
     # used to shrink dataset to ensure code works
     # train_tweets = train_tweets[:round((1/40)*len(train_tweets))]
     # train_emoji_labels = train_emoji_labels[:round((1 / 40) * len(train_emoji_labels))]
+
+    if simple:
+        model_type = "Simple"
+    else:
+        model_type = "Advanced"
 
     print("\nFitting TF-IDF Vectorizer and transforming data...")
     # converts training and test data accordingly
@@ -39,7 +43,7 @@ def svm_tfidf_pos_bigram(save, train_tweets, test_tweets, train_emoji_labels, te
         pickle.dump(svc, open('../models/svc.sav', 'wb'))
     else:
         print("\nLoading existing SVM classifier...")
-        svc = pickle.load(open('../models/svc.sav', 'rb'))
+        svc = pickle.load(open('../models/svc - ' + language + ' - ' + model_type + ' PreProcessing.sav', 'rb'))
 
     # predict the labels for the test set
     pred_emoji_labels = svc.predict(test_x_tfidf)
@@ -47,7 +51,6 @@ def svm_tfidf_pos_bigram(save, train_tweets, test_tweets, train_emoji_labels, te
     acc = accuracy_score(test_emoji_labels, pred_emoji_labels)
     results = classification_report(test_emoji_labels, pred_emoji_labels)
     print("\nAccuracy Score:", acc)
-    print('\nConfusion Matrix:\n', confusion_matrix(test_emoji_labels, pred_emoji_labels))
     print('\nClassification Report:\n', results)
 
     with open("../results/svm " + datetime.now().strftime("%d-%m-%Y %H-%M-%S") + ".txt", "w+") as f:
@@ -115,4 +118,4 @@ if __name__ == '__main__':
     train_tweets.extend(valid_tweets)
     train_labels.extend(valid_labels)
 
-    svm_tfidf_pos_bigram(save_model, train_tweets, test_tweets, train_labels, test_labels)
+    svm_tfidf_pos_bigram(save_model, train_tweets, test_tweets, train_labels, test_labels, languageAbbreviation, simple)

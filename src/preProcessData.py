@@ -281,6 +281,7 @@ def simple_preprocessing(tweet_filename, labels_filename):
 
     # create list with labels
     set_labels = set_labels_file.read().split("\n")
+    # if the last saved label is empty (so, text file ends with a new line), remove it from the list of labels
     if set_labels[len(set_labels) - 1] == '':
         set_labels = set_labels[:-1]
 
