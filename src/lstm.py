@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # Variable Declaration
     languageAbbreviation = "us"
     trainText, trainLabels, validationText, validationLabels, testText, testLabels = getPreProcessData(languageAbbreviation, False, True)
-    numberOfEpochs = 2
+    numberOfEpochs = 1
     continueTraining = True
     if languageAbbreviation == "us":
         numberOfDifferentLabels = 20
@@ -54,36 +54,37 @@ if __name__ == "__main__":
     trainLabels.extend(validationLabels)
     splitRatio = len(validationLabels) / len(trainLabels)
 
+    trainText = trainText[:round((1 / 100) * len(trainText))]
+    trainLabels = trainLabels[:round((1 / 100) * len(trainLabels))]
+    validationText = validationText[:round((1 / 100) * len(validationText))]
+    validationLabels = validationLabels[:round((1 / 100) * len(validationLabels))]
+    testText = testText[:round((1 / 100) * len(testText))]
+    testLabels = testLabels[:round((1 / 100) * len(testLabels))]
+
     del validationText, validationLabels
 
     print("Resuming bi-lstm model training, this is going to be a while")
 
     trainText, trainLabels, lengthOfLongestWord = formatData(trainText, trainLabels)
     testText, testLabels, _ = formatData(testText, testLabels)
-    model = load_model("../models/bi-lstm - " + languageAbbreviation)
+
+    # model = load_model("../models/bi-lstm - " + languageAbbreviation)
 
     while True:
 
         # continueTraining = False
-
-        # trainText = trainText[:round((1/10) * len(trainText))]
-        # trainLabels = trainLabels[:round((1 / 10) * len(trainLabels))]
-        # validationText = validationText[:round((1 / 10) * len(validationText))]
-        # validationLabels = validationLabels[:round((1 / 10) * len(validationLabels))]
-        # testText = testText[:round((1 / 10) * len(testText))]
-        # testLabels = testLabels[:round((1 / 10) * len(testLabels))]
         if not os.path.isdir("../models/bi-lstm - " + languageAbbreviation):
 
-            trainText.extend(validationText)
-            trainLabels.extend(validationLabels)
-            splitRatio = len(validationLabels) / len(trainLabels)
+            # trainText.extend(validationText)
+            # trainLabels.extend(validationLabels)
+            # splitRatio = len(validationLabels) / len(trainLabels)
 
-            del validationText, validationLabels
+#            del validationText, validationLabels
 
             print("Creating bi-lstm model, this is going to be a while")
 
-            trainText, trainLabels, lengthOfLongestWord = formatData(trainText, trainLabels)
-            testText, testLabels, _ = formatData(testText, testLabels)
+            # trainText, trainLabels, lengthOfLongestWord = formatData(trainText, trainLabels)
+            # testText, testLabels, _ = formatData(testText, testLabels)
 
             # Create weight matrix
 
@@ -116,6 +117,7 @@ if __name__ == "__main__":
 
         elif continueTraining:
 
+            model = load_model("../models/bi-lstm - " + languageAbbreviation)
             model.fit(trainText, trainLabels, epochs=numberOfEpochs, validation_split=splitRatio, initial_epoch=numberOfEpochs-1)
             model.save("../models/bi-lstm - " + languageAbbreviation)
             model.save("../models/bi-lstm - " + languageAbbreviation + " (" + str(numberOfEpochs) + ")")

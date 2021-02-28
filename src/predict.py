@@ -8,19 +8,15 @@ if __name__ == "__main__":
         if len(sys.argv) < 3:
             while True:
                 print("Please pick a model")
-                print("1) LSTM")
+                print("1) SVM")
                 print("2) Bi-LSTM")
-                print("3) SVM")
                 print("0) Exit")
                 model = input().lower().strip()
-                if model == '1' or model == "lstm":
+                if model == '1' or model == "svm":
                     model = 1
                     break
                 elif model == '2' or model == "bi-lstm" or model == "bilstm":
                     model = 2
-                    break
-                elif model == '3' or model == "svm":
-                    model = 3
                     break
                 else:
                     print("Please enter a valid input")
@@ -42,9 +38,8 @@ if __name__ == "__main__":
                 print("-----------------")
 
     if model == 1:
-        print("Doing lstm")
+        print("Doing svm")
     elif model == 2:
         print("Doing bi-lstm")
-    elif model == 3:
-        print("Doing svm")
+
 
