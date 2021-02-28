@@ -1,2 +1,0 @@
-# LIN3012 DDNLP Project
- LIN3012 Project
