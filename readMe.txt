@@ -1,8 +1,6 @@
 Data-Driven NLP: Multilingual EMOJI Prediction Multilingual EMOJI prediction
 By Christina Barbara (0037900L) and Charlton Sammut (0490200L)
 
--In the documentation folder one can find the documentation, the plagiarism form and the compiled results generated through our experiments.
-
 -In the dataset folder one can find all the data used by our scripts.
 Can be downloaded from: https://drive.google.com/file/d/19XzfaGeZKyd0xFP1e7cn8Z7brU3ERNwq/view?usp=sharing
 
