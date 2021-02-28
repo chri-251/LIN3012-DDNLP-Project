@@ -1,3 +1,5 @@
+import pickle
+import sys
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import svm
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
@@ -5,7 +7,7 @@ from spacy.lang.en import English
 from spacy.lang.es import Spanish
 from datetime import datetime
 from preProcessData import getPreProcessData
-import pickle
+
 
 
 # returns tweets as tokens having a POS tag
@@ -53,16 +55,62 @@ def svm_tfidf_pos_bigram(save, train_tweets, test_tweets, train_emoji_labels, te
 
 
 if __name__ == '__main__':
-    simple = False
-    save_model = True
-    languageAbbreviation = 'us'
+    # sys.argv[1] --> language
+    # sys.argv[2] --> simplePreProcessing
+    # sys.argv[3] --> ForcePreProcessing
+    # sys.argv[4] --> createNewModel
 
-    if languageAbbreviation == 'us':
+    languageAbbreviation = "us"
+    simple = False
+    forcePreProcessing = False
+    save_model = False
+
+    if len(sys.argv) >= 2:
+        languageAbbreviation = sys.argv[1].lower()
+        if languageAbbreviation == "us" or languageAbbreviation == "english":
+            languageAbbreviation = "us"
+        elif languageAbbreviation == "es" or languageAbbreviation == "spanish":
+            languageAbbreviation = "es"
+        else:
+            print("Parser error: argv[1] needs to be either us or es")
+            print("Using default value (us)")
+
+        if len(sys.argv) >= 3:
+            simple = sys.argv[2].lower()
+            if simple == "false":
+                simple = False
+            elif simple == "true":
+                simple = True
+            else:
+                print("Parser error: argv[2] needs to be either True or False")
+                print("Using default value (False)")
+
+            if len(sys.argv) >= 4:
+                forcePreProcessing = sys.argv[3].lower()
+                if forcePreProcessing == "false":
+                    forcePreProcessing = False
+                elif forcePreProcessing == "true":
+                    forcePreProcessing = True
+                else:
+                    print("Parser error: argv[3] needs to be either True or False")
+                    print("Using default value (False)")
+
+                if len(sys.argv) >= 5:
+                    save_model = sys.argv[4].lower()
+                    if save_model == "false":
+                        save_model = False
+                    elif save_model == "true":
+                        save_model = True
+                    else:
+                        print("Parser error: argv[4] needs to be either True or False")
+                        print("Using default value (False)")
+
+    if languageAbbreviation == "us":
         parser = English()
     else:
         parser = Spanish()
 
-    train_tweets, train_labels, valid_tweets, valid_labels, test_tweets, test_labels = getPreProcessData(languageAbbreviation, False, simple)
+    train_tweets, train_labels, valid_tweets, valid_labels, test_tweets, test_labels = getPreProcessData(languageAbbreviation, forcePreProcessing, simple)
 
     train_tweets.extend(valid_tweets)
     train_labels.extend(valid_labels)
