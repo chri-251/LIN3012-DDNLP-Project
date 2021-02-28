@@ -1,6 +1,13 @@
 Data-Driven NLP: Multilingual EMOJI Prediction Multilingual EMOJI prediction
 By Christina Barbara (0037900L) and Charlton Sammut (0490200L)
 
+In the root directory, after having downloaded all required files, there should be the following folders:
+- dataset
+- models
+- results
+- src
+This is necessary in order to ensure that all code found in src runs as intended.
+
 -In the dataset folder one can find all the data used by our scripts.
 Can be downloaded from: https://drive.google.com/file/d/19XzfaGeZKyd0xFP1e7cn8Z7brU3ERNwq/view?usp=sharing
 
@@ -9,7 +16,7 @@ Can be downloaded from: https://drive.google.com/file/d/14Kl0icBFk3IfmuyMMkVEs5Z
 
 -In the results folder one can find the automatically generated results created by the models.
 
--In the source folder one can find all the code written for this Project.
+-In the source (src) folder one can find all the code written for this Project.
 
 --Before running any scripts the python >= 3.8 needs to be installed with the following packages:
 ---language-detector >= 5.0.2 (pip install language-detector)
